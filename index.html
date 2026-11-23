@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LV Transporte</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16a34a">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;padding-bottom:30px}
+.top{background:#16a34a;color:#fff;padding:16px;text-align:center}
+.top h1{margin:0;font-size:26px}.top p{margin:4px 0 0;font-size:12px}
+.btn{display:block;width:calc(100% - 24px);margin:10px 12px;padding:14px;border:0;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;text-align:center}
+.white{background:#fff;color:#000}.orange{background:#f59e0b;color:#fff}.green{background:#16a34a;color:#fff}.blue{background:#2563eb;color:#fff}.black{background:#111;color:#fff}.gray{background:#e5e7eb;color:#111}
+.cards{background:#fff;margin:0 12px;border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+.cards small{color:#666;font-size:11px}.cards b{font-size:15px}.red{color:#dc2626}.green-t{color:#16a34a}
+.tabs{display:flex;gap:8px;margin:12px}.tabs button{flex:1;padding:12px;border-radius:10px;border:0;font-weight:800;cursor:pointer}.tabs .on{background:#16a34a;color:#fff}.tabs .off{background:#e5e7eb}
+.card{background:#fff;margin:12px;border-radius:12px;padding:14px}
+.card h3{margin:0 0 10px}label{font-size:12px;color:#555;display:block;margin-top:10px}input,select,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;margin-top:4px;background:#fff}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.tipo{display:flex;gap:10px}.tipo button{flex:1;padding:14px;border-radius:10px;border:1px solid #ddd;font-weight:800;cursor:pointer}.tipo .on{background:#16a34a;color:#fff}.tipo .off{background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid #eee;padding:8px;text-align:left}
+.badge{display:inline-block;background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}
+</style></head><body>
+<div class="top"><h1>🚛 LV Transporte</h1><p>KM • Diesel • Pedágio • Ajudante • Lucro</p></div>
+<button class="btn white" onclick="alert('No celular: menu do navegador > Adicionar à tela inicial / Instalar app')">📱 INSTALAR NO CELULAR</button>
+<button class="btn orange" onclick="document.getElementById('foto').click()">🖼️ TROCAR FOTO DO TOPO</button>
+<input type="file" id="foto" accept="image/*" style="display:none">
+<div class="cards">
+<div><small>Receita Frete</small><br><b id="cReceita">R$ 0,00</b><br><small>Viagens</small><br><b id="cViagens">0</b><br><small>Diesel</small><br><b>R$ <span id="cDiesel">0,00</span></b><br><small>Alimentação</small><br><b>R$ <span id="cAlim">0,00</span></b></div>
+<div><small>Total Gastos</small><br><b class="red" id="cGastos">R$ 0,00</b><br><small>Qtd Entregas</small><br><b id="cEnt">0</b><br><small>Pedágio</small><br><b>R$ <span id="cPed">0,00</span></b><br><small>Viagens Entrega</small><br><b id="cVEnt">0</b></div>
+<div><small>Lucro Líquido</small><br><b class="green-t" id="cLucro">R$ 0,00</b><br><small>Qtd Coletas</small><br><b id="cCol">0</b><br><small>Ajudante</small><br><b>R$ <span id="cAju">0,00</span></b><br><small>Viagens Coleta</small><br><b id="cVCol">0</b></div>
+</div>
+<button class="btn blue" onclick="gerarResumoMotorista()">📄 GERAR PDF PARA COMPARTILHAR</button>
+<div class="tabs"><button id="t1" class="on" onclick="aba('nova')">Nova Viagem</button><button id="t2" class="off" onclick="aba('hist')">Historico</button><button id="t3" class="off" onclick="aba('fech')">Fechamento do Mes</button></div>
+
+<div id="aba-nova" class="card">
+<h3>Nova Viagem</h3>
+<label>Data</label><input type="date" id="data" value="2019-12-07">
+<label>Tipo</label><div class="tipo"><button id="bEnt" class="on" onclick="setTipo('ENTREGA')">ENTREGA</button><button id="bCol" class="off" onclick="setTipo('COLETA')">COLETA</button></div>
+<label>Cliente</label><input id="cliente" placeholder="Ex: Mercado Livre...">
+<label>Placa</label><input id="placa" placeholder="Ex: ABC-1234">
+<div class="row"><div><label>Origem</label><input id="origem" value="Louveira"></div><div><label>Destino</label><input id="destino" value="Santos"></div></div>
+<div class="row"><div><label>KM</label><input type="number" id="km" value="220"></div><div><label>Valor Frete R$</label><input type="number" id="frete" value="1000"></div></div>
+<div class="row"><div><label>Qtd ENTREGAS</label><input type="number" id="qEnt" value="1"></div><div><label>Qtd COLETAS</label><input type="number" id="qCol" value="0"></div></div>
+<h3 style="margin-top:16px">Gastos</h3>
+<div class="row"><div><label>Diesel R$</label><input type="number" id="diesel" value="0"></div><div><label>Pedágio R$</label><input type="number" id="pedagio" value="0"></div></div>
+<div class="row"><div><label>Ajudante R$</label><input type="number" id="ajudante" value="0"></div><div><label>Motorista R$</label><input type="number" id="motorista" value="0"></div></div>
+<div class="row"><div><label>Alimentação R$</label><input type="number" id="alim" value="0"></div><div><label>Manutenção / Outros R$</label><input type="number" id="manut" value="0"></div></div>
+<p><b>Lucro dessa viagem vai ser: <span id="lucroViagem">R$ 1.000,00</span></b></p>
+<button class="btn green" onclick="salvar()">SALVAR TUDO DE UMA VEZ</button>
+<p id="msg" style="text-align:center;color:#16a34a;font-weight:700"></p>
+</div>
+
+<div id="aba-hist" class="card" style="display:none">
+<h3>Historico</h3>
+<div class="row"><div><label>Todos os meses</label><select id="fMes" onchange="render()"><option value="">Todos os meses</option></select></div><div><label>Todos os anos</label><select id="fAno" onchange="render()"><option value="">Todos os anos</option></select></div></div>
+<div id="lista"></div>
+<button class="btn" style="background:#fee2e2;color:#991b1b" onclick="if(confirm('Limpar tudo?')){localStorage.removeItem('lv_viagens');render()}">Limpar Tudo</button>
+</div>
+
+<div id="aba-fech" class="card" style="display:none">
+<h3>FECHAMENTO DO MES - PARA ENVIAR PRO CLIENTE</h3>
+<p><span class="badge">PRO CLIENTE: só frete + origem + destino. Sem gastos.</span></p>
+<label>Escolha o Mês</label><select id="sMes"></select>
+<label>Escolha a Empresa / Cliente</label><select id="sCli"><option value="">Todos os clientes</option></select>
+<label>Mensagem para cliente</label><textarea id="msgCli" rows="3">Segue fechamento do mês, qualquer dúvida estou à disposição. - LV Transporte</textarea>
+<div id="prevCliente" style="background:#f9fafb;padding:12px;border-radius:10px;margin:10px 0"></div>
+<button class="btn green" onclick="enviarWhatsCliente()">COMPARTILHAR FECHAMENTO COM O CLIENTE NO WHATSAPP</button>
+<button class="btn blue" onclick="baixarFechamentoCliente()">COMPARTILHAR PDF DO FECHAMENTO</button>
+<button class="btn black" onclick="copiarValor()">COPIAR VALOR PARA ENVIAR</button>
+<button class="btn gray" onclick="verDetalhe()">VER DETALHE (SÓ PRA MIM)</button>
+<div id="detalhe" style="display:none;margin-top:12px;background:#fffbe6;padding:12px;border-radius:10px"></div>
+<h3 style="margin-top:20px">COMPARTILHAR HISTORICO DO MES - CONTROLE DO MOTORISTA</h3>
+<p><span class="badge">SÓ MOTORISTA: com gastos e lucro.</span></p>
+<label>Escolha o mês para compartilhar</label><select id="sMes2"></select>
+<button class="btn green" onclick="enviarWhatsMotorista()">COMPARTILHAR HISTORICO DO MES NO WHATSAPP</button>
+<button class="btn blue" onclick="gerarResumoMotorista()">GERAR PDF DO MES</button>
+<button class="btn black" onclick="copiarResumoMotorista()">COPIAR RESUMO DO MES</button>
+</div>
+
+<script>
+let tipo='ENTREGA';
+function num(id){return parseFloat(document.getElementById(id).value)||0}
+function fmt(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function get(){try{return JSON.parse(localStorage.getItem('lv_viagens')||'[]')}catch(e){return[]}}
+function setTipo(t){tipo=t;document.getElementById('bEnt').className=t=='ENTREGA'?'on':'off';document.getElementById('bCol').className=t=='COLETA'?'on':'off'}
+function calcLucro(){let l=num('frete')-num('diesel')-num('pedagio')-num('ajudante')-num('motorista')-num('alim')-num('manut');document.getElementById('lucroViagem').textContent=fmt(l);return l}
+['frete','diesel','pedagio','ajudante','motorista','alim','manut'].forEach(id=>document.getElementById(id).addEventListener('input',calcLucro));
+function salvar(){
+ let v={data:document.getElementById('data').value,tipo:tipo,cliente:document.getElementById('cliente').value||'Sem cliente',placa:document.getElementById('placa').value,origem:document.getElementById('origem').value,destino:document.getElementById('destino').value,km:num('km'),frete:num('frete'),qEnt:num('qEnt'),qCol:num('qCol'),diesel:num('diesel'),pedagio:num('pedagio'),ajudante:num('ajudante'),motorista:num('motorista'),alim:num('alim'),manut:num('manut')};
+ v.gastos=v.diesel+v.pedagio+v.ajudante+v.motorista+v.alim+v.manut; v.lucro=v.frete-v.gastos; v.mes=v.data?v.data.slice(0,7):'';
+ let arr=get(); arr.push(v); localStorage.setItem('lv_viagens',JSON.stringify(arr));
+ document.getElementById('msg').textContent='✅ Salvo! Total agora: '+fmt(arr.reduce((s,x)=>s+x.frete,0));
+ render(); aba('hist');
+}
+function filtradas(){let arr=get();let m=document.getElementById('fMes').value;let a=document.getElementById('fAno').value;return arr.filter(x=>(!m||x.mes==m)&&(!a||(x.data&&x.data.startsWith(a))))}
+function render(){
+ let arr=get();
+ let rec=arr.reduce((s,x)=>s+x.frete,0), gas=arr.reduce((s,x)=>s+x.gastos,0), luc=rec-gas;
+ document.getElementById('cReceita').textContent=fmt(rec);document.getElementById('cGastos').textContent=fmt(gas);document.getElementById('cLucro').textContent=fmt(luc);
+ document.getElementById('cViagens').textContent=arr.length;
+ document.getElementById('cDiesel').textContent=arr.reduce((s,x)=>s+x.diesel,0).toFixed(2);document.getElementById('cPed').textContent=arr.reduce((s,x)=>s+x.pedagio,0).toFixed(2);document.getElementById('cAju').textContent=arr.reduce((s,x)=>s+x.ajudante,0).toFixed(2);document.getElementById('cAlim').textContent=arr.reduce((s,x)=>s+x.alim,0).toFixed(2);
+ document.getElementById('cEnt').textContent=arr.reduce((s,x)=>s+x.qEnt,0);document.getElementById('cCol').textContent=arr.reduce((s,x)=>s+x.qCol,0);
+ document.getElementById('cVEnt').textContent=arr.filter(x=>x.tipo=='ENTREGA').length;document.getElementById('cVCol').textContent=arr.filter(x=>x.tipo=='COLETA').length;
+ // meses
+ let meses=[...new Set(arr.map(x=>x.mes))].sort();let anos=[...new Set(arr.map(x=>x.data?x.data.slice(0,4):''))].sort();
+ let fMes=document.getElementById('fMes'),fAno=document.getElementById('fAno');let curM=fMes.value,curA=fAno.value;
+ fMes.innerHTML='<option value="">Todos os meses</option>'+meses.map(m=>`<option>${m}</option>`).join('');fMes.value=curM;
+ fAno.innerHTML='<option value="">Todos os anos</option>'+anos.map(a=>`<option>${a}</option>`).join('');fAno.value=curA;
+ // selects fechamento
+ let sMes=document.getElementById('sMes'),sMes2=document.getElementById('sMes2');
+ let sm=sMes.value||'',sm2=sMes2.value||'';
+ sMes.innerHTML=meses.map(m=>`<option>${m}</option>`).join('');sMes2.innerHTML=meses.map(m=>`<option>${m}</option>`).join('');if(sm)sMes.value=sm;if(sm2)sMes2.value=sm2;
+ let clis=[...new Set(arr.map(x=>x.cliente))];let sCli=document.getElementById('sCli');let sc=sCli.value||'';sCli.innerHTML='<option value="">Todos os clientes</option>'+clis.map(c=>`<option>${c}</option>`).join('');sCli.value=sc;
+ // lista historico (controle motorista completo)
+ let list=filtradas();
+ document.getElementById('lista').innerHTML=list.length?'<table><tr><th>Data</th><th>Cliente</th><th>Origem → Destino</th><th>Frete</th><th>Lucro</th></tr>'+list.map(x=>`<tr><td>${x.data}</td><td>${x.cliente}</td><td>${x.origem} → ${x.destino}</td><td>${fmt(x.frete)}</td><td>${fmt(x.lucro)}</td></tr>`).join('')+'</table>':'<p>Nenhuma viagem ainda. Cadastre a primeira em Nova Viagem.</p>';
+ // prev cliente - SÓ FRETE
+ let cm=sMes.value, cc=sCli.value;
+ let cli=arr.filter(x=>(!cm||x.mes==cm)&&(!cc||x.cliente==cc));
+ let tot=cli.reduce((s,x)=>s+x.frete,0);
+ document.getElementById('prevCliente').innerHTML=`<b>Fechamento para cliente - ${cm||'Todos'} - ${cc||'Todos'}</b><br>Viagens: ${cli.length}<br>Total Frete: <b>${fmt(tot)}</b><br>`+cli.map(x=>`${x.data} - ${x.origem} → ${x.destino} - ${fmt(x.frete)}`).join('<br>');
+}
+function aba(n){['nova','hist','fech'].forEach(x=>document.getElementById('aba-'+x).style.display=x==n?'block':'none');document.getElementById('t1').className=n=='nova'?'on':'off';document.getElementById('t2').className=n=='hist'?'on':'off';document.getElementById('t3').className=n=='fech'?'on':'off';render()}
+function textoCliente(){
+ let cm=document.getElementById('sMes').value, cc=document.getElementById('sCli').value, arr=get().filter(x=>(!cm||x.mes==cm)&&(!cc||x.cliente==cc));
+ let tot=arr.reduce((s,x)=>s+x.frete,0);
+ let t=`FECHAMENTO DO MES - LV TRANSPORTE\nMês: ${cm||'Todos'} | Cliente: ${cc||'Todos'}\n\n`+arr.map(x=>`${x.data} - ${x.origem} -> ${x.destino} - Frete: ${fmt(x.frete)}`).join('\n')+`\n\nTotal Frete: ${fmt(tot)}\n\n${document.getElementById('msgCli').value}`;
+ return {t,tot,arr};
+}
+function textoMotorista(){
+ let cm=document.getElementById('sMes2').value, arr=get().filter(x=>!cm||x.mes==cm);
+ let rec=arr.reduce((s,x)=>s+x.frete,0), gas=arr.reduce((s,x)=>s+x.gastos,0), luc=rec-gas;
+ let t=`CONTROLE DO MOTORISTA - LV TRANSPORTE\nMês: ${cm||'Todos'}\nReceita Frete: ${fmt(rec)}\nTotal Gastos: ${fmt(gas)}\nDiesel: ${fmt(arr.reduce((s,x)=>s+x.diesel,0))} | Pedágio: ${fmt(arr.reduce((s,x)=>s+x.pedagio,0))} | Ajudante: ${fmt(arr.reduce((s,x)=>s+x.ajudante,0))} | Motorista: ${fmt(arr.reduce((s,x)=>s+x.motorista,0))} | Alimentação: ${fmt(arr.reduce((s,x)=>s+x.alim,0))} | Manutenção: ${fmt(arr.reduce((s,x)=>s+x.manut,0))}\nLucro Líquido: ${fmt(luc)}\n\n`+arr.map(x=>`${x.data} - ${x.cliente} - ${x.origem} -> ${x.destino} - Frete ${fmt(x.frete)} - Gastos ${fmt(x.gastos)} - Lucro ${fmt(x.lucro)}`).join('\n');
+ return {t,rec,gas,luc,arr};
+}
+function abrirWhats(texto){window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank')}
+function enviarWhatsCliente(){abrirWhats(textoCliente().t)}
+function enviarWhatsMotorista(){abrirWhats(textoMotorista().t)}
+function baixar(nome,conteudo){let b=new Blob([conteudo],{type:'text/plain;charset=utf-8'});let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome;a.click()}
+function baixarFechamentoCliente(){let d=textoCliente();baixar('fechamento-cliente-'+(document.getElementById('sMes').value||'mes')+'.txt',d.t)}
+function gerarResumoMotorista(){let d=textoMotorista();baixar('controle-motorista-'+(document.getElementById('sMes2').value||'mes')+'.txt',d.t)}
+function copiarValor(){let d=textoCliente();navigator.clipboard.writeText('Total Frete: '+fmt(d.tot)).then(()=>alert('Copiado: Total Frete '+fmt(d.tot)))}
+function copiarResumoMotorista(){let d=textoMotorista();navigator.clipboard.writeText(d.t).then(()=>alert('Resumo do motorista copiado!'))}
+function verDetalhe(){let d=textoMotorista();let el=document.getElementById('detalhe');el.style.display='block';el.innerHTML='<b>DETALHE SÓ PRA MIM - Controle do Motorista</b><br><pre style="white-space:pre-wrap;font-family:Arial">'+d.t+'</pre>'}
+document.getElementById('sMes').addEventListener('change',render);document.getElementById('sCli').addEventListener('change',render);
+calcLucro();render();
+</script></body></html>
