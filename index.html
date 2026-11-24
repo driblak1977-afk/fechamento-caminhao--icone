@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LV Transporte</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#16a34a">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f1f5f9;padding-bottom:30px}
+header{background:#16a34a;color:#fff;padding:14px;text-align:center;position:sticky;top:0;z-index:10}
+header b{font-size:22px} header small{display:block;font-size:12px;opacity:.9}
+.top-img{width:100%;max-height:180px;object-fit:cover;display:none}
+.top-img.show{display:block}
+.wrap{max-width:900px;margin:0 auto;padding:12px}
+.btn{width:100%;border:none;padding:13px;border-radius:10px;font-weight:bold;font-size:15px;cursor:pointer;margin:6px 0}
+.btn-white{background:#fff;color:#111;border:1px solid #ddd}
+.btn-orange{background:#f59e0b;color:#fff}
+.btn-blue{background:#2563eb;color:#fff}
+.btn-green{background:#16a34a;color:#fff}
+.btn-dark{background:#111;color:#fff}
+.btn-gray{background:#e5e7eb;color:#111}
+.cards{background:#fff;border-radius:14px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;margin:10px 0}
+.cards div b{display:block;font-size:16px}
+.red{color:#dc2626}.green{color:#16a34a}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.tabs button{padding:12px;border:none;border-radius:10px;background:#e5e7eb;font-weight:bold;cursor:pointer}
+.tabs button.on{background:#16a34a;color:#fff}
+.card{background:#fff;border-radius:14px;padding:14px;margin:10px 0}
+label{font-size:13px;font-weight:bold;display:block;margin:10px 0 4px}
+input,select,textarea{width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;background:#fff}
+textarea{min-height:70px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tipo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tipo button{padding:12px;border:none;border-radius:10px;font-weight:bold;background:#e5e7eb;cursor:pointer}
+.tipo button.on{background:#16a34a;color:#fff}
+.viagem{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:8px 0}
+.viagem b{font-size:15px}
+.badge{display:inline-block;background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:bold;margin:6px 0}
+.muted{color:#6b7280;font-size:13px}
+@media(max-width:600px){.cards{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><b>🚛 LV Transporte</b><small>KM • Diesel • Pedágio • Ajudante • Lucro</small></header>
+<img id="topImg" class="top-img">
+<div class="wrap">
+<button class="btn btn-white" onclick="instalar()">📱 INSTALAR NO CELULAR</button>
+<button class="btn btn-orange" onclick="document.getElementById('fotoInput').click()">🖼️ TROCAR FOTO DO TOPO</button>
+<input type="file" id="fotoInput" accept="image/*" hidden onchange="trocarFoto(event)">
+
+<div class="cards" id="resumo"></div>
+<button class="btn btn-blue" onclick="gerarPDF()">📄 GERAR PDF PARA COMPARTILHAR</button>
+
+<div class="tabs">
+<button id="tabNova" class="on" onclick="mostra('nova')">Nova Viagem</button>
+<button id="tabHist" onclick="mostra('hist')">Historico</button>
+<button id="tabFech" onclick="mostra('fech')">Fechamento do Mês</button>
+</div>
+
+<!-- NOVA -->
+<div id="abaNova" class="card">
+<h3>Nova Viagem</h3>
+<label>Data</label><input type="date" id="fData">
+<label>Tipo</label><div class="tipo"><button id="tEnt" class="on" onclick="setTipo('ENTREGA')">ENTREGA</button><button id="tCol" onclick="setTipo('COLETA')">COLETA</button></div>
+<label>Cliente</label><input id="fCliente" placeholder="Ex: Help express">
+<label>Placa</label><input id="fPlaca" placeholder="Ex: ABC-1234">
+<div class="grid2"><div><label>Origem</label><input id="fOrigem" value="Louveira"></div><div><label>Destino</label><input id="fDestino" placeholder="Santos"></div></div>
+<div class="grid2"><div><label>KM</label><input type="number" id="fKm" value="220"></div><div><label>Valor Frete R$</label><input type="number" id="fFrete" value="1000"></div></div>
+<div class="grid2"><div><label>Qtd Entregas</label><input type="number" id="fQtdE" value="1"></div><div><label>Qtd Coletas</label><input type="number" id="fQtdC" value="0"></div></div>
+<h3 style="margin-top:14px">Gastos</h3>
+<div class="grid2">
+<div><label>Diesel R$</label><input type="number" id="fDiesel" value="0"></div>
+<div><label>Pedágio R$</label><input type="number" id="fPedagio" value="80"></div>
+<div><label>Ajudante R$</label><input type="number" id="fAjudante" value="0"></div>
+<div><label>Motorista R$</label><input type="number" id="fMotorista" value="0"></div>
+<div><label>Alimentação R$</label><input type="number" id="fAlim" value="0"></div>
+<div><label>Manutenção / Outros R$</label><input type="number" id="fManut" value="0"></div>
+</div>
+<p style="margin:12px 0;font-weight:bold" id="lucroPrev">Lucro dessa viagem vai ser: R$ 920,00</p>
+<button class="btn btn-green" onclick="salvar()">SALVAR TUDO DE UMA VEZ</button>
+<button class="btn btn-dark" onclick="restaurarExemplo()">↩️ ADICIONAR EXEMPLO HELP EXPRESS - LOUVEIRA → SANTOS - R$ 1.000,00</button>
+<p class="muted" id="msgSave"></p>
+</div>
+
+<!-- HISTORICO -->
+<div id="abaHist" class="card" style="display:none">
+<h3>Historico</h3>
+<div class="grid2"><div><label>Todos os meses</label><select id="filtroMes"></select></div><div><label>Todos os anos</label><select id="filtroAno"></select></div></div>
+<div id="lista"></div>
+<button class="btn" style="background:#fee2e2;color:#b91c1c" onclick="limparTudo()">Limpar Tudo</button>
+</div>
+
+<!-- FECHAMENTO -->
+<div id="abaFech" class="card" style="display:none">
+<h3>FECHAMENTO DO MÊS - PARA ENVIAR PRO CLIENTE</h3>
+<span class="badge">PRO CLIENTE: só frete + origem + destino. Sem gastos.</span>
+<label>Escolha o Mês</label><select id="fechMes"></select>
+<label>Escolha a Empresa / Cliente</label><select id="fechCli"></select>
+<label>Mensagem para cliente</label><textarea id="fechMsg">Segue fechamento do mês, qualquer dúvida estou à disposição. - LV Transporte</textarea>
+<div id="fechResumo" style="margin:12px 0"></div>
+<button class="btn btn-green" onclick="shareWhats()">💬 COMPARTILHAR FECHAMENTO COM O CLIENTE NO WHATSAPP</button>
+<button class="btn btn-blue" onclick="gerarPDF()">📄 COMPARTILHAR PDF DO FECHAMENTO</button>
+<button class="btn btn-dark" onclick="copiarValor()">📋 COPIAR VALOR PARA ENVIAR</button>
+<button class="btn btn-gray" onclick="verDetalhe()">👁️ VER DETALHE (SÓ PRA MIM)</button>
+<div id="detalhe" style="display:none;margin-top:10px"></div>
+<hr style="margin:16px 0">
+<h3>COMPARTILHAR HISTORICO DO MÊS - CONTROLE DO MOTORISTA</h3>
+<span class="badge">SÓ MOTORISTA: com gastos e lucro.</span>
+<label>Escolha o mês para compartilhar</label><select id="compMes"></select>
+<p class="muted" id="compResumo"></p>
+<button class="btn btn-green" onclick="shareHistWhats()">💬 COMPARTILHAR HISTORICO DO MÊS NO WHATSAPP</button>
+<button class="btn btn-blue" onclick="gerarPDF()">📄 GERAR PDF DO MÊS</button>
+<button class="btn btn-dark" onclick="copiarResumo()">📋 COPIAR RESUMO DO MÊS</button>
+</div>
+</div>
+<script>
+const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function fmtMes(ym){ if(!ym||ym==="undefined"||ym==="null"||!/^\d{4}-\d{2}$/.test(ym)) return "Selecione o mês"; const [a,m]=ym.split("-"); const i=Number(m)-1; if(i<0||i>11) return "Selecione o mês"; return MESES[i]+" de "+a; }
+function mesAtual(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function brl(v){ return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function brlData(d){ if(!d) return ""; const [a,m,dd]=d.split("-"); return dd+"/"+m+"/"+a; }
+function load(){ try{ return JSON.parse(localStorage.getItem("lv_viagens")||"[]"); }catch(e){ return []; } }
+function save(v){ localStorage.setItem("lv_viagens", JSON.stringify(v)); }
+let tipo="ENTREGA";
+function setTipo(t){ tipo=t; document.getElementById("tEnt").className = t==="ENTREGA"?"on":""; document.getElementById("tCol").className = t==="COLETA"?"on":""; }
+function mostra(aba){
+  document.getElementById("abaNova").style.display = aba==="nova"?"block":"none";
+  document.getElementById("abaHist").style.display = aba==="hist"?"block":"none";
+  document.getElementById("abaFech").style.display = aba==="fech"?"block":"none";
+  document.getElementById("tabNova").className = aba==="nova"?"on":"";
+  document.getElementById("tabHist").className = aba==="hist"?"on":"";
+  document.getElementById("tabFech").className = aba==="fech"?"on":"";
+  render();
+}
+function mesesDisponiveis(){
+  const v=load(); const s=new Set(); s.add(mesAtual());
+  v.forEach(x=>{ const mes = (x.mes && x.mes!=="undefined" && /^\d{4}-\d{2}$/.test(x.mes)) ? x.mes : (x.data||"").slice(0,7); if(/^\d{4}-\d{2}$/.test(mes)) s.add(mes); });
+  return Array.from(s).sort().reverse();
+}
+function clientesDisponiveis(){ const v=load(); return Array.from(new Set(v.map(x=>x.cliente).filter(Boolean))).sort(); }
+function render(){
+  const v=load();
+  const rec=v.reduce((a,x)=>a+(Number(x.frete)||0),0);
+  const gas=v.reduce((a,x)=>a+(Number(x.diesel)||0)+(Number(x.pedagio)||0)+(Number(x.ajudante)||0)+(Number(x.motorista)||0)+(Number(x.alim)||0)+(Number(x.manut)||0),0);
+  const diesel=v.reduce((a,x)=>a+(Number(x.diesel)||0),0), pedagio=v.reduce((a,x)=>a+(Number(x.pedagio)||0),0), ajud=v.reduce((a,x)=>a+(Number(x.ajudante)||0),0), alim=v.reduce((a,x)=>a+(Number(x.alim)||0),0);
+  const qe=v.reduce((a,x)=>a+(Number(x.qtdE)||0),0), qc=v.reduce((a,x)=>a+(Number(x.qtdC)||0),0);
+  const ve=v.filter(x=>x.tipo==="ENTREGA").length, vc=v.filter(x=>x.tipo==="COLETA").length;
+  document.getElementById("resumo").innerHTML =
+    `<div><small>Receita Frete</small><b>${brl(rec)}</b><small>Viagens ${v.length}</small></div>
+     <div><small>Total Gastos</small><b class="red">${brl(gas)}</b><small>Qtd Entregas ${qe}</small></div>
+     <div><small>Lucro Líquido</small><b class="green">${brl(rec-gas)}</b><small>Qtd Coletas ${qc}</small></div>
+     <div><small>Diesel</small><b>${brl(diesel)}</b></div>
+     <div><small>Pedágio</small><b>${brl(pedagio)}</b></div>
+     <div><small>Ajudante</small><b>${brl(ajud)}</b></div>
+     <div><small>Alimentação</small><b>${brl(alim)}</b></div>
+     <div><small>Viagens Entrega</small><b>${ve}</b></div>
+     <div><small>Viagens Coleta</small><b>${vc}</b></div>`;
+  // filtros historico
+  const meses=mesesDisponiveis();
+  const fm=document.getElementById("filtroMes"); fm.innerHTML=`<option value="todos">Todos os meses</option>`+meses.map(m=>`<option value="${m}">${fmtMes(m)}</option>`).join("");
+  const anos=Array.from(new Set(v.map(x=>(x.data||"").slice(0,4)).filter(Boolean).concat([String(new Date().getFullYear())]))).sort().reverse();
+  const fa=document.getElementById("filtroAno"); fa.innerHTML=`<option value="todos">Todos os anos</option>`+anos.map(a=>`<option value="${a}">${a}</option>`).join("");
+  // lista historico
+  const fmes=fm.value||"todos", fano=fa.value||"todos";
+  const filtradas=v.filter(x=>{ const mes=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); if(fmes!=="todos"&&mes!==fmes) return false; if(fano!=="todos"&&(x.data||"").slice(0,4)!==fano) return false; return true; });
+  document.getElementById("lista").innerHTML = filtradas.length? filtradas.map((x,i)=>{ const idx=v.indexOf(x); const lucro=(Number(x.frete)||0)-((Number(x.diesel)||0)+(Number(x.pedagio)||0)+(Number(x.ajudante)||0)+(Number(x.motorista)||0)+(Number(x.alim)||0)+(Number(x.manut)||0)); return `<div class="viagem"><b>${x.cliente||"Sem cliente"} • ${brlData(x.data)} • ${x.tipo}</b><br>${x.origem||""} → ${x.destino||""} • ${x.km||0} KM<br>Frete: <b>${brl(x.frete)}</b> • Lucro: <b class="green">${brl(lucro)}</b><br><button class="btn btn-gray" style="padding:8px;margin-top:8px" onclick="excluir(${idx})">Excluir</button></div>`; }).join("") : `<p class="muted">Nenhuma viagem ainda. Cadastre a primeira em Nova Viagem.</p>`;
+  // fechamento selects
+  const fechMes=document.getElementById("fechMes"); const mesSel=fechMes.value||mesAtual();
+  fechMes.innerHTML=meses.map(m=>`<option value="${m}" ${m===mesSel?"selected":""}>${fmtMes(m)}</option>`).join("");
+  const compMes=document.getElementById("compMes"); const compSel=compMes.value||mesAtual();
+  compMes.innerHTML=meses.map(m=>`<option value="${m}" ${m===compSel?"selected":""}>${fmtMes(m)}</option>`).join("");
+  const fechCli=document.getElementById("fechCli"); const cliSel=fechCli.value||"todos";
+  fechCli.innerHTML=`<option value="todos">Todos os clientes</option>`+clientesDisponiveis().map(c=>`<option value="${c}" ${c===cliSel?"selected":""}>${c}</option>`).join("");
+  atualizarFechamento();
+}
+function atualizarFechamento(){
+  const v=load(); const mes=document.getElementById("fechMes").value; const cli=document.getElementById("fechCli").value;
+  const f=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===mes && (cli==="todos"||x.cliente===cli); });
+  const total=f.reduce((a,x)=>a+(Number(x.frete)||0),0);
+  document.getElementById("fechResumo").innerHTML=`<b>Fechamento para cliente - ${fmtMes(mes)} - ${cli==="todos"?"Todos":cli}</b><br>Viagens: ${f.length}<br>Total Frete: <b>${brl(total)}</b><br>`+f.map(x=>`• ${brlData(x.data)} - ${x.origem||""} → ${x.destino||""} - ${brl(x.frete)}`).join("<br>");
+  const cm=document.getElementById("compMes").value;
+  const cf=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===cm; });
+  const crec=cf.reduce((a,x)=>a+(Number(x.frete)||0),0); const cgas=cf.reduce((a,x)=>a+(Number(x.diesel)||0)+(Number(x.pedagio)||0)+(Number(x.ajudante)||0)+(Number(x.motorista)||0)+(Number(x.alim)||0)+(Number(x.manut)||0),0);
+  document.getElementById("compResumo").innerHTML=`${cf.length} viagens • Receita ${brl(crec)} • Lucro ${brl(crec-cgas)}`;
+}
+document.getElementById("fechMes").addEventListener("change", atualizarFechamento);
+document.getElementById("fechCli").addEventListener("change", atualizarFechamento);
+document.getElementById("compMes").addEventListener("change", atualizarFechamento);
+document.getElementById("filtroMes").addEventListener("change", render);
+document.getElementById("filtroAno").addEventListener("change", render);
+function calcLucro(){ const f=Number(document.getElementById("fFrete").value)||0; const g=(Number(document.getElementById("fDiesel").value)||0)+(Number(document.getElementById("fPedagio").value)||0)+(Number(document.getElementById("fAjudante").value)||0)+(Number(document.getElementById("fMotorista").value)||0)+(Number(document.getElementById("fAlim").value)||0)+(Number(document.getElementById("fManut").value)||0); document.getElementById("lucroPrev").textContent="Lucro dessa viagem vai ser: "+brl(f-g); }
+["fFrete","fDiesel","fPedagio","fAjudante","fMotorista","fAlim","fManut"].forEach(id=>document.getElementById(id).addEventListener("input", calcLucro));
+function restaurarExemplo(){
+  const v=load();
+  if(v.some(x=>x.cliente==="Help express")){ alert("Help express já está na lista!"); render(); return; }
+  const hoje=new Date().toISOString().slice(0,10);
+  v.push({data:hoje, mes:hoje.slice(0,7), tipo:"ENTREGA", cliente:"Help express", placa:"", origem:"Louveira", destino:"Santos", km:220, frete:1000, qtdE:1, qtdC:0, diesel:0, pedagio:80, ajudante:0, motorista:0, alim:0, manut:200});
+  v.sort((a,b)=>b.data.localeCompare(a.data)); save(v); render();
+  alert("Pronto! Help express adicionada: Louveira → Santos - Frete R$ 1.000,00");
+  mostra("fech");
+}
+function salvar(){
+  const data=document.getElementById("fData").value; if(!data){ alert("Escolha a data!"); return; }
+  const cliente=document.getElementById("fCliente").value.trim(); if(!cliente){ alert("Escolha o cliente!"); return; }
+  const mes=data.slice(0,7);
+  const nova={ data, mes, tipo, cliente, placa:document.getElementById("fPlaca").value, origem:document.getElementById("fOrigem").value, destino:document.getElementById("fDestino").value, km:Number(document.getElementById("fKm").value)||0, frete:Number(document.getElementById("fFrete").value)||0, qtdE:Number(document.getElementById("fQtdE").value)||0, qtdC:Number(document.getElementById("fQtdC").value)||0, diesel:Number(document.getElementById("fDiesel").value)||0, pedagio:Number(document.getElementById("fPedagio").value)||0, ajudante:Number(document.getElementById("fAjudante").value)||0, motorista:Number(document.getElementById("fMotorista").value)||0, alim:Number(document.getElementById("fAlim").value)||0, manut:Number(document.getElementById("fManut").value)||0 };
+  const v=load(); v.push(nova); v.sort((a,b)=>b.data.localeCompare(a.data)); save(v);
+  document.getElementById("msgSave").textContent="✅ Viagem salva! "+cliente+" - "+brl(nova.frete);
+  render(); mostra("hist");
+}
+function excluir(i){ if(!confirm("Excluir essa viagem?")) return; const v=load(); v.splice(i,1); save(v); render(); }
+function limparTudo(){ if(!confirm("Apagar TUDO?")) return; localStorage.removeItem("lv_viagens"); render(); }
+function verDetalhe(){
+  const v=load(); const mes=document.getElementById("fechMes").value; const cli=document.getElementById("fechCli").value;
+  const f=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===mes && (cli==="todos"||x.cliente===cli); });
+  const el=document.getElementById("detalhe"); el.style.display="block";
+  el.innerHTML=f.map(x=>{ const g=(Number(x.diesel)||0)+(Number(x.pedagio)||0)+(Number(x.ajudante)||0)+(Number(x.motorista)||0)+(Number(x.alim)||0)+(Number(x.manut)||0); return `<div class="viagem"><b>${x.cliente} • ${brlData(x.data)}</b><br>Frete ${brl(x.frete)} • Gastos ${brl(g)} • Lucro ${brl((Number(x.frete)||0)-g)}<br>Diesel ${brl(x.diesel)} • Pedágio ${brl(x.pedagio)} • Ajudante ${brl(x.ajudante)} • Motorista ${brl(x.motorista)} • Alimentação ${brl(x.alim)} • Manutenção ${brl(x.manut)}</div>`; }).join("")||"Nenhuma viagem nesse mês.";
+}
+function textoFechamento(){
+  const v=load(); const mes=document.getElementById("fechMes").value; const cli=document.getElementById("fechCli").value;
+  const f=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===mes && (cli==="todos"||x.cliente===cli); });
+  const total=f.reduce((a,x)=>a+(Number(x.frete)||0),0);
+  let t=document.getElementById("fechMsg").value+"\n\nFECHAMENTO - "+fmtMes(mes).toUpperCase()+" - "+(cli==="todos"?"Todos os clientes":cli)+"\nViagens: "+f.length+"\nTotal Frete: "+brl(total)+"\n\n";
+  f.forEach(x=>{ t+=brlData(x.data)+" - "+(x.origem||"")+" → "+(x.destino||"")+" - "+brl(x.frete)+"\n"; });
+  return t;
+}
+function shareWhats(){ window.open("https://wa.me/?text="+encodeURIComponent(textoFechamento()),"_blank"); }
+function shareHistWhats(){
+  const v=load(); const mes=document.getElementById("compMes").value;
+  const f=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===mes; });
+  const rec=f.reduce((a,x)=>a+(Number(x.frete)||0),0); const gas=f.reduce((a,x)=>a+(Number(x.diesel)||0)+(Number(x.pedagio)||0)+(Number(x.ajudante)||0)+(Number(x.motorista)||0)+(Number(x.alim)||0)+(Number(x.manut)||0),0);
+  let t="HISTORICO "+fmtMes(mes).toUpperCase()+" - LV Transporte\nViagens: "+f.length+"\nReceita: "+brl(rec)+"\nGastos: "+brl(gas)+"\nLucro: "+brl(rec-gas)+"\n\n";
+  f.forEach(x=>{ t+=brlData(x.data)+" - "+(x.cliente||"")+" - "+(x.origem||"")+" → "+(x.destino||"")+" - Frete "+brl(x.frete)+"\n"; });
+  window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank");
+}
+function copiarValor(){ const v=load(); const mes=document.getElementById("fechMes").value; const cli=document.getElementById("fechCli").value; const f=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===mes && (cli==="todos"||x.cliente===cli); }); const total=f.reduce((a,x)=>a+(Number(x.frete)||0),0); navigator.clipboard.writeText(brl(total)).then(()=>alert("Copiado: "+brl(total))); }
+function copiarResumo(){ const v=load(); const mes=document.getElementById("compMes").value; const f=v.filter(x=>{ const m=(x.mes&&/^\d{4}-\d{2}$/.test(x.mes))?x.mes:(x.data||"").slice(0,7); return m===mes; }); const rec=f.reduce((a,x)=>a+(Number(x.frete)||0),0); const gas=f.reduce((a,x)=>a+(Number(x.diesel)||0)+(Number(x.pedagio)||0)+(Number(x.ajudante)||0)+(Number(x.motorista)||0)+(Number(x.alim)||0)+(Number(x.manut)||0),0); navigator.clipboard.writeText("LV Transporte - "+fmtMes(mes)+" - Viagens: "+f.length+" - Receita: "+brl(rec)+" - Lucro: "+brl(rec-gas)).then(()=>alert("Resumo copiado!")); }
+function gerarPDF(){ window.print(); }
+function instalar(){ alert("No celular: abre o menu do navegador (3 pontinhos) > Adicionar à tela inicial > Instalar. Vai aparecer o ícone verde LV Transporte!"); }
+function trocarFoto(e){ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ localStorage.setItem("lv_foto_topo", r.result); mostrarFoto(); }; r.readAsDataURL(f); }
+function mostrarFoto(){ const foto=localStorage.getItem("lv_foto_topo"); const img=document.getElementById("topImg"); if(foto){ img.src=foto; img.className="top-img show"; } }
+document.getElementById("fData").value=new Date().toISOString().slice(0,10);
+mostrarFoto(); calcLucro(); render();
+</script></body></html>
